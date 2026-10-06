@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Английский тренажёр — учи слова играя</title>
+<meta name="description" content="Тренажёр английских слов: учи 100 базовых слов в игровой форме. Бесплатно, без регистрации.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0KFZCL500J"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-0KFZCL500J');
+</script>
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fb, #e8ecff, #f5e8ff, #ffe8f5, #f5f7fb);
+    background-size: 400% 400%;
+    animation: gradientShift 20s ease infinite;
+    color: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    overflow-x: hidden;
+    position: relative;
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .bg-animation {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(240, 147, 251, 0.12) 0%, transparent 45%);
+  }
+  .bg-blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; animation: blobMove 20s ease-in-out infinite; }
+  .blob-1 { width: 500px; height: 500px; background: rgba(102, 126, 234, 0.25); top: -150px; left: -150px; }
+  .blob-2 { width: 400px; height: 400px; background: rgba(240, 147, 251, 0.2); bottom: -100px; right: -100px; animation-delay: -7s; }
+  .blob-3 { width: 350px; height: 350px; background: rgba(118, 75, 162, 0.15); top: 50%; left: 60%; animation-delay: -14s; }
+  @keyframes blobMove {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(50px, -30px) scale(1.1); }
+    66% { transform: translate(-30px, 40px) scale(0.95); }
+  }
+  .content-wrapper { position: relative; z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
+  h1 {
+    font-size: 2.4rem; font-weight: 700; letter-spacing: 1px; text-align: center; margin-bottom: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .subtitle { color: #6a6a8a; font-size: 0.95rem; letter-spacing: 1px; margin-bottom: 25px; text-align: center; }
+
+  .stats-bar {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 10;
+  }
+  .stat-box {
+    flex: 1;
+    background: #fff;
+    border: 1.5px solid #e8ebf5;
+    border-radius: 14px;
+    padding: 12px 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .stat-box:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15); }
+  .stat-label {
+    font-size: 0.7rem;
+    color: #8a8ab0;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #667eea;
+  }
+  .stat-value.green { color: #4caf50; }
+  .stat-value.red { color: #f44336; }
+
+  .card {
+    width: 100%; max-width: 600px; background: #fff; border: 1px solid rgba(102, 126, 234, 0.12);
+    border-radius: 24px; padding: 35px 30px;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
+    position: relative; overflow: hidden; transition: box-shadow 0.3s ease;
+  }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2, #f093fb); }
+
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .menu-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: #1a1a2e;
+  }
+  .menu-subtitle {
+    font-size: 0.9rem;
+    color: #8a8ab0;
+    text-align: center;
+    margin-bottom: 25px;
+  }
+  .menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 24px;
+    background: #f8f9fd;
+    border: 1.5px solid #e8ebf5;
+    border-radius: 16px;
+    color: #1a1a2e;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+  }
+  .menu-btn:hover {
+    background: #fff;
+    border-color: #667eea;
+    transform: translateX(5px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+  }
+  .menu-btn .icon { font-size: 1.8rem; flex-shrink: 0; }
+  .menu-btn .text { flex: 1; }
+  .menu-btn .text small { display: block; font-size: 0.8rem; color: #8a8ab0; font-weight: 400; margin-top: 2px; }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e8ebf5;
+    border-radius: 4px;
+    margin-bottom: 25px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #f093fb);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .question-label {
+    font-size: 0.85rem;
+    color: #8a8ab0;
+    text-align: center;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .word-display {
+    font-size: 3rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: wordAppear 0.5s ease;
+  }
+  @keyframes wordAppear {
+    0% { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .option-btn {
+    padding: 16px 20px;
+    background: #f8f9fd;
+    border: 1.5px solid #e8ebf5;
+    border-radius: 12px;
+    color: #1a1a2e;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+  .option-btn:hover:not(.disabled) {
+    background: #fff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+  }
+  .option-btn.correct {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
+    animation: correctPulse 0.5s ease;
+  }
+  .option-btn.wrong {
+    background: #ffebee;
+    border-color: #f44336;
+    color: #c62828;
+    animation: wrongShake 0.5s ease;
+  }
+  .option-btn.disabled { cursor: not-allowed; }
+  @keyframes correctPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes wrongShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  .result-screen { text-align: center; }
+  .result-emoji { font-size: 4rem; margin-bottom: 15px; animation: emojiBounce 1s ease infinite; }
+  @keyframes emojiBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+  .result-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 10px; color: #1a1a2e; }
+  .result-score { font-size: 1.2rem; color: #6a6a8a; margin-bottom: 25px; }
+  .result-score span { color: #667eea; font-weight: 700; font-size: 1.5rem; }
+
+  .btn {
+    width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    border: none; border-radius: 14px; color: #fff; font-family: inherit; font-size: 1.05rem;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+    transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.35);
+    position: relative; overflow: hidden; margin-bottom: 12px;
+  }
+  .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5); }
+  .btn.secondary {
+    background: #f8f9fd;
+    color: #1a1a2e;
+    box-shadow: none;
+    border: 1.5px solid #e8ebf5;
+  }
+  .btn.secondary:hover { background: #fff; border-color: #667eea; color: #667eea; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15); }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 1.8rem; }
+    .card { padding: 25px 20px; }
+    .word-display { font-size: 2.2rem; }
+    .stats-bar { flex-wrap: wrap; }
+    .stat-box { min-width: calc(50% - 8px); }
+  }
+</style>
+</head><body>
+
+  <div class="bg-animation"></div>
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <div class="content-wrapper">
+
+    <h1>📚 Английский тренажёр</h1>
+    <p class="subtitle">Учи 100 базовых слов в игровой форме</p>
+
+    <div class="stats-bar">
+      <div class="stat-box">
+        <div class="stat-label">Правильно</div>
+        <div class="stat-value green" id="statCorrect">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Неправильно</div>
+        <div class="stat-value red" id="statWrong">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Прогресс</div>
+        <div class="stat-value" id="statProgress">0%</div>
+      </div>
+    </div>
+
+    <div class="card">
+
+      <div class="screen active" id="screenMenu">
+        <div class="menu-title">📖 Выбери режим</div>
+        <div class="menu-subtitle">Учи слова — отмечай правильные ответы</div>
+
+        <div class="menu-buttons">
+          <button class="menu-btn" onclick="startQuiz('en-ru')">
+            <span class="icon">🇬🇧</span>
+            <span class="text">
+              Английский → Русский
+              <small>Показывается слово — выбери перевод</small>
+            </span>
+          </button>
+
+          <button class="menu-btn" onclick="startQuiz('ru-en')">
+            <span class="icon">🇷🇺</span>
+            <span class="text">
+              Русский → Английский
+              <small>Показывается перевод — выбери слово</small>
+            </span>
+          </button>
+
+          <button class="menu-btn" onclick="startQuiz('random')">
+            <span class="icon">🎲</span>
+            <span class="text">
+              Случайный режим
+              <small>Вопросы в разном порядке</small>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="screen" id="screenQuiz">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="question-label" id="questionLabel">Вопрос 1 из 10</div>
+        <div class="word-display" id="wordDisplay">word</div>
+
+        <div class="options" id="optionsContainer"></div>
+      </div>
+
+      <div class="screen result-screen" id="screenResult">
+        <div class="result-emoji" id="resultEmoji">🎉</div>
+        <div class="result-title" id="resultTitle">Отлично!</div>
+        <div class="result-score" id="resultScore">
+          Правильно: <span>0</span> из <span>10</span>
+        </div>
+
+        <button class="btn" onclick="startQuiz(currentMode)">
+          🔄 Ещё раз
+        </button>
+        <button class="btn secondary" onclick="goToMenu()">
+          📖 В меню
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script>
+  var words = [
+    { en: "apple", ru: "яблоко" },
+    { en: "book", ru: "книга" },
+    { en: "cat", ru: "кошка" },
+    { en: "dog", ru: "собака" },
+    { en: "house", ru: "дом" },
+    { en: "car", ru: "машина" },
+    { en: "tree", ru: "дерево" },
+    { en: "water", ru: "вода" },
+    { en: "fire", ru: "огонь" },
+    { en: "sun", ru: "солнце" },
+    { en: "moon", ru: "луна" },
+    { en: "star", ru: "звезда" },
+    { en: "sky", ru: "небо" },
+    { en: "sea", ru: "море" },
+    { en: "river", ru: "река" },
+    { en: "mountain", ru: "гора" },
+    { en: "forest", ru: "лес" },
+    { en: "flower", ru: "цветок" },
+    { en: "grass", ru: "трава" },
+    { en: "leaf", ru: "лист" },
+    { en: "bird", ru: "птица" },
+    { en: "fish", ru: "рыба" },
+    { en: "horse", ru: "лошадь" },
+    { en: "cow", ru: "корова" },
+    { en: "pig", ru: "свинья" },
+    { en: "chicken", ru: "курица" },
+    { en: "mouse", ru: "мышь" },
+    { en: "bear", ru: "медведь" },
+    { en: "wolf", ru: "волк" },
+    { en: "fox", ru: "лиса" },
+    { en: "lion", ru: "лев" },
+    { en: "tiger", ru: "тигр" },
+    { en: "elephant", ru: "слон" },
+    { en: "monkey", ru: "обезьяна" },
+    { en: "rabbit", ru: "кролик" },
+    { en: "snake", ru: "змея" },
+    { en: "frog", ru: "лягушка" },
+    { en: "bread", ru: "хлеб" },
+    { en: "milk", ru: "молоко" },
+    { en: "cheese", ru: "сыр" },
+    { en: "meat", ru: "мясо" },
+    { en: "egg", ru: "яйцо" },
+    { en: "sugar", ru: "сахар" },
+    { en: "salt", ru: "соль" },
+    { en: "tea", ru: "чай" },
+    { en: "coffee", ru: "кофе" },
+    { en: "juice", ru: "сок" },
+    { en: "soup", ru: "суп" },
+    { en: "cake", ru: "торт" },
+    { en: "chocolate", ru: "шоколад" },
+    { en: "family", ru: "семья" },
+    { en: "mother", ru: "мама" },
+    { en: "father", ru: "папа" },
+    { en: "sister", ru: "сестра" },
+    { en: "brother", ru: "брат" },
+    { en: "friend", ru: "друг" },
+    { en: "school", ru: "школа" },
+    { en: "teacher", ru: "учитель" },
+    { en: "student", ru: "ученик" },
+    { en: "lesson", ru: "урок" },
+    { en: "homework", ru: "домашняя работа" },
+    { en: "city", ru: "город" },
+    { en: "country", ru: "страна" },
+    { en: "street", ru: "улица" },
+    { en: "road", ru: "дорога" },
+    { en: "bridge", ru: "мост" },
+    { en: "park", ru: "парк" },
+    { en: "shop", ru: "магазин" },
+    { en: "hospital", ru: "больница" },
+    { en: "morning", ru: "утро" },
+    { en: "day", ru: "день" },
+    { en: "evening", ru: "вечер" },
+    { en: "night", ru: "ночь" },
+    { en: "week", ru: "неделя" },
+    { en: "month", ru: "месяц" },
+    { en: "year", ru: "год" },
+    { en: "time", ru: "время" },
+    { en: "hour", ru: "час" },
+    { en: "minute", ru: "минута" },
+    { en: "big", ru: "большой" },
+    { en: "small", ru: "маленький" },
+    { en: "good", ru: "хороший" },
+    { en: "bad", ru: "плохой" },
+    { en: "new", ru: "новый" },
+    { en: "old", ru: "старый" },
+    { en: "happy", ru: "счастливый" },
+    { en: "sad", ru: "грустный" },
+    { en: "fast", ru: "быстрый" },
+    { en: "slow", ru: "медленный" },
+    { en: "hot", ru: "горячий" },
+    { en: "cold", ru: "холодный" },
+    { en: "red", ru: "красный" },
+    { en: "blue", ru: "синий" },
+    { en: "green", ru: "зелёный" },
+    { en: "yellow", ru: "жёлтый" },
+    { en: "black", ru: "чёрный" },
+    { en: "white", ru: "белый" },
+    { en: "run", ru: "бежать" },
+    { en: "eat", ru: "есть" },
+    { en: "sleep", ru: "спать" },
+    { en: "read", ru: "читать" },
+    { en: "write", ru: "писать" }
+  ];
+
+  var QUESTIONS_PER_ROUND = 10;
+  var currentMode = 'en-ru';
+  var currentQuestions = [];
+  var currentIndex = 0;
+  var correctCount = 0;
+  var wrongCount = 0;
+  var answered = false;
+
+  var statCorrect = document.getElementById('statCorrect');
+  var statWrong = document.getElementById('statWrong');
+  var statProgress = document.getElementById('statProgress');
+  var screenMenu = document.getElementById('screenMenu');
+  var screenQuiz = document.getElementById('screenQuiz');
+  var screenResult = document.getElementById('screenResult');
+  var questionLabel = document.getElementById('questionLabel');
+  var wordDisplay = document.getElementById('wordDisplay');
+  var optionsContainer = document.getElementById('optionsContainer');
+  var progressFill = document.getElementById('progressFill');
+  var resultEmoji = document.getElementById('resultEmoji');
+  var resultTitle = document.getElementById('resultTitle');
+  var resultScore = document.getElementById('resultScore');
+
+  function showScreen(screenId) {
+    screenMenu.classList.remove('active');
+    screenQuiz.classList.remove('active');
+    screenResult.classList.remove('active');
+    document.getElementById(screenId).classList.add('active');
+  }
+
+  function goToMenu() {
+    showScreen('screenMenu');
+  }
+
+  function shuffle(array) {
+    var arr = array.slice();
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = temp;
+    }
+    return arr;
+  }
+
+  function startQuiz(mode) {
+    currentMode = mode || 'en-ru';
+    currentIndex = 0;
+    correctCount = 0;
+    wrongCount = 0;
+    answered = false;
+
+    statCorrect.textContent = '0';
+    statWrong.textContent = '0';
+    statProgress.textContent = '0%';
+
+    var shuffled = shuffle(words);
+    currentQuestions = shuffled.slice(0, QUESTIONS_PER_ROUND);
+
+    showScreen('screenQuiz');
+    showQuestion();
+  }
+
+  function showQuestion() {
+    answered = false;
+    var q = currentQuestions[currentIndex];
+    var isEnRu = currentMode === 'en-ru' || (currentMode === 'random' && Math.random() < 0.5);
+
+    var questionWord = isEnRu ? q.en : q.ru;
+    var correctAnswer = isEnRu ? q.ru : q.en;
+
+    questionLabel.textContent = 'Вопрос ' + (currentIndex + 1) + ' из ' + QUESTIONS_PER_ROUND;
+    wordDisplay.textContent = questionWord;
+
+    var wrongOptions = [];
+    while (wrongOptions.length < 3) {
+      var randomWord = words[Math.floor(Math.random() * words.length)];
+      var wrongAnswer = isEnRu ? randomWord.ru : randomWord.en;
+      if (wrongAnswer !== correctAnswer && wrongOptions.indexOf(wrongAnswer) === -1) {
+        wrongOptions.push(wrongAnswer);
+      }
+    }
+
+    var allOptions = shuffle([correctAnswer].concat(wrongOptions));
+
+    optionsContainer.innerHTML = '';
+    allOptions.forEach(function(option) {
+      var btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.textContent = option;
+      btn.onclick = function() { checkAnswer(btn, option, correctAnswer); };
+      optionsContainer.appendChild(btn);
+    });
+
+    var progress = (currentIndex / QUESTIONS_PER_ROUND) * 100;
+    progressFill.style.width = progress + '%';
+    statProgress.textContent = Math.round(progress) + '%';
+  }
+
+  function checkAnswer(btn, selected, correct) {
+    if (answered) return;
+    answered = true;
+
+    var allButtons = optionsContainer.querySelectorAll('.option-btn');
+    allButtons.forEach(function(b) { b.classList.add('disabled'); });
+
+    if (selected === correct) {
+      btn.classList.add('correct');
+      correctCount++;
+      statCorrect.textContent = correctCount;
+    } else {
+      btn.classList.add('wrong');
+      wrongCount++;
+      statWrong.textContent = wrongCount;
+      allButtons.forEach(function(b) {
+        if (b.textContent === correct) b.classList.add('correct');
+      });
+    }
+
+    setTimeout(function() {
+      currentIndex++;
+      if (currentIndex < QUESTIONS_PER_ROUND) {
+        showQuestion();
+      } else {
+        finishQuiz();
+      }
+    }, 1200);
+  }
+
+  function finishQuiz() {
+    progressFill.style.width = '100%';
+    statProgress.textContent = '100%';
+
+    showScreen('screenResult');
+
+    var percent = Math.round((correctCount / QUESTIONS_PER_ROUND) * 100);
+
+    if (percent === 100) {
+      resultEmoji.textContent = '🏆';
+      resultTitle.textContent = 'Идеально!';
+      launchConfetti();
+    } else if (percent >= 80) {
+      resultEmoji.textContent = '🎉';
+      resultTitle.textContent = 'Отлично!';
+      launchConfetti();
+    } else if (percent >= 60) {
+      resultEmoji.textContent = '👍';
+      resultTitle.textContent = 'Хорошо!';
+    } else if (percent >= 40) {
+      resultEmoji.textContent = '💪';
+      resultTitle.textContent = 'Неплохо!';
+    } else {
+      resultEmoji.textContent = '📚';
+      resultTitle.textContent = 'Попробуй ещё!';
+    }
+
+    resultScore.innerHTML = 'Правильно: <span>' + correctCount + '</span> из <span>' + QUESTIONS_PER_ROUND + '</span>';
+  }
+
+  function launchConfetti() {
+    if (typeof confetti === 'function') {
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
+  }
+
+  window.addEventListener('load', function() {
+    showScreen('screenMenu');
+  });
+</script>
+</body>
+</html>

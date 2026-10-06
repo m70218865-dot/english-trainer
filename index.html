@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Английский тренажёр — учи слова играя</title>
+<meta name="description" content="Тренажёр английских слов: 8 категорий, озвучка, статистика, достижения.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CH6H0CT03G"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-CH6H0CT03G');
+</script>
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fb, #e8ecff, #f5e8ff, #ffe8f5, #f5f7fb);
+    background-size: 400% 400%;
+    animation: gradientShift 20s ease infinite;
+    color: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    overflow-x: hidden;
+    position: relative;
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .bg-animation {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(240, 147, 251, 0.12) 0%, transparent 45%);
+  }
+  .bg-blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; animation: blobMove 20s ease-in-out infinite; }
+  .blob-1 { width: 500px; height: 500px; background: rgba(102, 126, 234, 0.25); top: -150px; left: -150px; }
+  .blob-2 { width: 400px; height: 400px; background: rgba(240, 147, 251, 0.2); bottom: -100px; right: -100px; animation-delay: -7s; }
+  .blob-3 { width: 350px; height: 350px; background: rgba(118, 75, 162, 0.15); top: 50%; left: 60%; animation-delay: -14s; }
+  @keyframes blobMove {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(50px, -30px) scale(1.1); }
+    66% { transform: translate(-30px, 40px) scale(0.95); }
+  }
+  .content-wrapper { position: relative; z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
+  h1 {
+    font-size: 2.4rem; font-weight: 700; letter-spacing: 1px; text-align: center; margin-bottom: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .subtitle { color: #6a6a8a; font-size: 0.95rem; letter-spacing: 1px; margin-bottom: 25px; text-align: center; }
+
+  .stats-bar { display: flex; gap: 15px; width: 100%; max-width: 600px; margin-bottom: 20px; position: relative; z-index: 10; }
+  .stat-box { flex: 1; background: #fff; border: 1.5px solid #e8ebf5; border-radius: 14px; padding: 12px 15px; text-align: center; }
+  .stat-label { font-size: 0.7rem; color: #8a8ab0; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+  .stat-value { font-size: 1.5rem; font-weight: 700; color: #667eea; }
+  .stat-value.green { color: #4caf50; }
+  .stat-value.red { color: #f44336; }
+
+  .card {
+    width: 100%; max-width: 600px; background: #fff; border: 1px solid rgba(102, 126, 234, 0.12);
+    border-radius: 24px; padding: 35px 30px;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.1);
+    position: relative; overflow: hidden;
+  }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2, #f093fb); }
+
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+  .menu-title { font-size: 1.3rem; font-weight: 700; text-align: center; margin-bottom: 8px; color: #1a1a2e; }
+  .menu-subtitle { font-size: 0.9rem; color: #8a8ab0; text-align: center; margin-bottom: 25px; }
+
+  .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  .category-card {
+    padding: 20px 18px; background: #f8f9fd; border: 1.5px solid #e8ebf5; border-radius: 16px;
+    cursor: pointer; transition: all 0.3s ease; text-align: left; font-family: inherit;
+  }
+  .category-card:hover { background: #fff; border-color: #667eea; transform: translateY(-3px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15); }
+  .category-icon { font-size: 2rem; margin-bottom: 8px; display: block; }
+  .category-name { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .category-count { font-size: 0.75rem; color: #8a8ab0; }
+
+  .mode-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+  .mode-btn {
+    flex: 1; padding: 14px 10px; background: #f8f9fd; border: 1.5px solid #e8ebf5; border-radius: 12px;
+    color: #1a1a2e; font-family: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+  }
+  .mode-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-color: transparent; }
+
+  .progress-bar { width: 100%; height: 8px; background: #e8ebf5; border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #f093fb); border-radius: 4px; transition: width 0.4s ease; width: 0%; }
+  .question-label { font-size: 0.85rem; color: #8a8ab0; text-align: center; margin-bottom: 8px; letter-spacing: 1px; }
+  .word-display {
+    font-size: 3rem; font-weight: 700; text-align: center; margin-bottom: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .pronounce-btn {
+    display: block; margin: 0 auto 25px; padding: 12px 24px;
+    background: #fff; border: 1.5px solid #667eea; border-radius: 50px;
+    color: #667eea; font-family: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+  }
+  .pronounce-btn:hover { background: #667eea; color: #fff; transform: translateY(-2px); }
+
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .option-btn {
+    padding: 16px 20px; background: #f8f9fd; border: 1.5px solid #e8ebf5; border-radius: 12px;
+    color: #1a1a2e; font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center;
+  }
+  .option-btn:hover:not(.disabled) { background: #fff; border-color: #667eea; transform: translateY(-2px); }
+  .option-btn.correct { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
+  .option-btn.wrong { background: #ffebee; border-color: #f44336; color: #c62828; }
+  .option-btn.disabled { cursor: not-allowed; }
+
+  .result-screen { text-align: center; }
+  .result-emoji { font-size: 4rem; margin-bottom: 15px; animation: emojiBounce 1s ease infinite; }
+  @keyframes emojiBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+  .result-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 10px; }
+  .result-score { font-size: 1.2rem; color: #6a6a8a; margin-bottom: 25px; }
+  .result-score span { color: #667eea; font-weight: 700; font-size: 1.5rem; }
+
+  .btn {
+    width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    border: none; border-radius: 14px; color: #fff; font-family: inherit; font-size: 1.05rem;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+    transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.35); margin-bottom: 12px;
+  }
+  .btn:hover { transform: translateY(-3px); }
+  .btn.secondary { background: #f8f9fd; color: #1a1a2e; box-shadow: none; border: 1.5px solid #e8ebf5; }
+
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px;
+    background: #f8f9fd; border: 1.5px solid #e8ebf5; border-radius: 50px;
+    color: #1a1a2e; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-bottom: 20px;
+  }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stats-item { background: #f8f9fd; border: 1.5px solid #e8ebf5; border-radius: 14px; padding: 18px; text-align: center; }
+  .stats-item-value { font-size: 1.8rem; font-weight: 700; color: #667eea; margin-bottom: 5px; }
+  .stats-item-label { font-size: 0.75rem; color: #8a8ab0; text-transform: uppercase; letter-spacing: 1.5px; }
+
+  .achievements-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .achievement { background: #f8f9fd; border: 1.5px solid #e8ebf5; border-radius: 14px; padding: 18px 14px; text-align: center; opacity: 0.4; }
+  .achievement.unlocked { opacity: 1; background: linear-gradient(135deg, #fff5e1, #ffe8f5); border-color: #f093fb; }
+  .achievement-icon { font-size: 2.5rem; margin-bottom: 8px; display: block; }
+  .achievement-title { font-size: 0.85rem; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .achievement-desc { font-size: 0.7rem; color: #8a8ab0; line-height: 1.3; }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 1.8rem; }
+    .card { padding: 25px 20px; }
+    .word-display { font-size: 2.2rem; }
+    .stats-bar { flex-wrap: wrap; }
+    .stat-box { min-width: calc(50% - 8px); }
+    .category-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head><body>
+
+  <div class="bg-animation"></div>
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <div class="content-wrapper">
+
+    <h1>📚 Английский тренажёр</h1>
+    <p class="subtitle">Учи слова играя — 8 категорий, озвучка, достижения</p>
+
+    <div class="stats-bar">
+      <div class="stat-box">
+        <div class="stat-label">Правильно</div>
+        <div class="stat-value green" id="statCorrect">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Неправильно</div>
+        <div class="stat-value red" id="statWrong">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Прогресс</div>
+        <div class="stat-value" id="statProgress">0%</div>
+      </div>
+    </div>
+
+    <div class="card">
+
+      <div class="screen active" id="screenCategory">
+        <div class="menu-title">📖 Выбери категорию</div>
+        <div class="menu-subtitle">Учи слова по темам</div>
+
+        <div class="category-grid" id="categoryGrid"></div>
+
+        <button class="btn secondary" onclick="showScreen('screenStats')">
+          📊 Моя статистика
+        </button>
+        <button class="btn secondary" onclick="showScreen('screenAchievements')">
+          🏆 Достижения
+        </button>
+      </div>
+
+      <div class="screen" id="screenMode">
+        <button class="back-btn" onclick="showScreen('screenCategory')">← Назад</button>
+        <div class="menu-title" id="modeCategoryTitle">📖 Категория</div>
+        <div class="menu-subtitle">Выбери режим тренировки</div>
+
+        <div class="mode-buttons">
+          <button class="mode-btn active" id="modeEnRu" onclick="setMode('en-ru')">
+            🇬🇧 → 🇷🇺
+          </button>
+          <button class="mode-btn" id="modeRuEn" onclick="setMode('ru-en')">
+            🇷🇺 → 🇬🇧
+          </button>
+          <button class="mode-btn" id="modeRandom" onclick="setMode('random')">
+            🎲 Случайно
+          </button>
+        </div>
+
+        <button class="btn" onclick="startQuiz()">▶ Начать тренировку</button>
+      </div>
+
+      <div class="screen" id="screenQuiz">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="question-label" id="questionLabel">Вопрос 1 из 10</div>
+        <div class="word-display" id="wordDisplay">word</div>
+
+        <button class="pronounce-btn" id="pronounceBtn" onclick="pronounceCurrentWord()">
+          🔊 Прослушать
+        </button>
+
+        <div class="options" id="optionsContainer"></div>
+      </div>
+
+      <div class="screen result-screen" id="screenResult">
+        <div class="result-emoji" id="resultEmoji">🎉</div>
+        <div class="result-title" id="resultTitle">Отлично!</div>
+        <div class="result-score" id="resultScore">
+          Правильно: <span>0</span> из <span>10</span>
+        </div>
+
+        <button class="btn" onclick="startQuiz()">🔄 Ещё раз</button>
+        <button class="btn secondary" onclick="showScreen('screenCategory')">📖 К категориям</button>
+      </div>
+
+      <div class="screen" id="screenStats">
+        <button class="back-btn" onclick="showScreen('screenCategory')">← Назад</button>
+        <div class="menu-title">📊 Моя статистика</div>
+        <div class="menu-subtitle">Твой прогресс за всё время</div>
+
+        <div class="stats-grid">
+          <div class="stats-item">
+            <div class="stats-item-value" id="statsTotalGames">0</div>
+            <div class="stats-item-label">Игр сыграно</div>
+          </div>
+          <div class="stats-item">
+            <div class="stats-item-value" id="statsTotalCorrect">0</div>
+            <div class="stats-item-label">Правильных</div>
+          </div>
+          <div class="stats-item">
+            <div class="stats-item-value" id="statsAccuracy">0%</div>
+            <div class="stats-item-label">Точность</div>
+          </div>
+          <div class="stats-item">
+            <div class="stats-item-value" id="statsBestScore">0</div>
+            <div class="stats-item-label">Лучший результат</div>
+          </div>
+        </div>
+
+        <button class="btn secondary" onclick="resetStats()">🗑 Сбросить статистику</button>
+      </div>
+
+      <div class="screen" id="screenAchievements">
+        <button class="back-btn" onclick="showScreen('screenCategory')">← Назад</button>
+        <div class="menu-title">🏆 Достижения</div>
+        <div class="menu-subtitle">Твои награды за прогресс</div>
+
+        <div class="achievements-grid" id="achievementsGrid"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script><script>
+  var categories = {
+    food: { name: "Еда", icon: "🍎", words: [
+      { en: "apple", ru: "яблоко" }, { en: "bread", ru: "хлеб" }, { en: "milk", ru: "молоко" },
+      { en: "cheese", ru: "сыр" }, { en: "meat", ru: "мясо" }, { en: "egg", ru: "яйцо" },
+      { en: "sugar", ru: "сахар" }, { en: "salt", ru: "соль" }, { en: "tea", ru: "чай" },
+      { en: "coffee", ru: "кофе" }, { en: "juice", ru: "сок" }, { en: "soup", ru: "суп" },
+      { en: "cake", ru: "торт" }, { en: "chocolate", ru: "шоколад" }, { en: "fish", ru: "рыба" }
+    ]},
+    animals: { name: "Животные", icon: "🐾", words: [
+      { en: "cat", ru: "кошка" }, { en: "dog", ru: "собака" }, { en: "horse", ru: "лошадь" },
+      { en: "cow", ru: "корова" }, { en: "pig", ru: "свинья" }, { en: "chicken", ru: "курица" },
+      { en: "mouse", ru: "мышь" }, { en: "bear", ru: "медведь" }, { en: "wolf", ru: "волк" },
+      { en: "fox", ru: "лиса" }, { en: "lion", ru: "лев" }, { en: "tiger", ru: "тигр" },
+      { en: "elephant", ru: "слон" }, { en: "monkey", ru: "обезьяна" }, { en: "rabbit", ru: "кролик" }
+    ]},
+    sport: { name: "Спорт", icon: "⚽", words: [
+      { en: "run", ru: "бежать" }, { en: "jump", ru: "прыгать" }, { en: "swim", ru: "плавать" },
+      { en: "ball", ru: "мяч" }, { en: "game", ru: "игра" }, { en: "team", ru: "команда" },
+      { en: "win", ru: "побеждать" }, { en: "lose", ru: "проигрывать" }, { en: "play", ru: "играть" },
+      { en: "sport", ru: "спорт" }, { en: "football", ru: "футбол" }, { en: "basketball", ru: "баскетбол" },
+      { en: "tennis", ru: "теннис" }, { en: "race", ru: "гонка" }, { en: "prize", ru: "приз" }
+    ]},
+    school: { name: "Школа", icon: "📚", words: [
+      { en: "book", ru: "книга" }, { en: "school", ru: "школа" }, { en: "teacher", ru: "учитель" },
+      { en: "student", ru: "ученик" }, { en: "lesson", ru: "урок" }, { en: "homework", ru: "домашняя работа" },
+      { en: "pen", ru: "ручка" }, { en: "pencil", ru: "карандаш" }, { en: "notebook", ru: "тетрадь" },
+      { en: "class", ru: "класс" }, { en: "exam", ru: "экзамен" }, { en: "test", ru: "тест" },
+      { en: "question", ru: "вопрос" }, { en: "answer", ru: "ответ" }, { en: "read", ru: "читать" }, { en: "write", ru: "писать" }
+    ]},
+    family: { name: "Семья", icon: "👨‍👩‍👧", words: [
+      { en: "family", ru: "семья" }, { en: "mother", ru: "мама" }, { en: "father", ru: "папа" },
+      { en: "sister", ru: "сестра" }, { en: "brother", ru: "брат" }, { en: "grandmother", ru: "бабушка" },
+      { en: "grandfather", ru: "дедушка" }, { en: "friend", ru: "друг" }, { en: "son", ru: "сын" },
+      { en: "daughter", ru: "дочь" }, { en: "aunt", ru: "тётя" }, { en: "uncle", ru: "дядя" },
+      { en: "cousin", ru: "двоюродный брат" }, { en: "parents", ru: "родители" }, { en: "child", ru: "ребёнок" }
+    ]},
+    colors: { name: "Цвета", icon: "🎨", words: [
+      { en: "red", ru: "красный" }, { en: "blue", ru: "синий" }, { en: "green", ru: "зелёный" },
+      { en: "yellow", ru: "жёлтый" }, { en: "black", ru: "чёрный" }, { en: "white", ru: "белый" },
+      { en: "orange", ru: "оранжевый" }, { en: "purple", ru: "фиолетовый" }, { en: "pink", ru: "розовый" },
+      { en: "brown", ru: "коричневый" }, { en: "gray", ru: "серый" }, { en: "gold", ru: "золотой" },
+      { en: "silver", ru: "серебряный" }, { en: "beige", ru: "бежевый" }, { en: "turquoise", ru: "бирюзовый" }
+    ]},
+    nature: { name: "Природа", icon: "🌍", words: [
+      { en: "sun", ru: "солнце" }, { en: "moon", ru: "луна" }, { en: "star", ru: "звезда" },
+      { en: "sky", ru: "небо" }, { en: "sea", ru: "море" }, { en: "river", ru: "река" },
+      { en: "mountain", ru: "гора" }, { en: "forest", ru: "лес" }, { en: "flower", ru: "цветок" },
+      { en: "grass", ru: "трава" }, { en: "leaf", ru: "лист" }, { en: "tree", ru: "дерево" },
+      { en: "rain", ru: "дождь" }, { en: "snow", ru: "снег" }, { en: "wind", ru: "ветер" }, { en: "cloud", ru: "облако" }
+    ]},
+    home: { name: "Дом", icon: "🏠", words: [
+      { en: "house", ru: "дом" }, { en: "room", ru: "комната" }, { en: "kitchen", ru: "кухня" },
+      { en: "bedroom", ru: "спальня" }, { en: "bathroom", ru: "ванная" }, { en: "door", ru: "дверь" },
+      { en: "window", ru: "окно" }, { en: "table", ru: "стол" }, { en: "chair", ru: "стул" },
+      { en: "bed", ru: "кровать" }, { en: "sofa", ru: "диван" }, { en: "lamp", ru: "лампа" },
+      { en: "mirror", ru: "зеркало" }, { en: "floor", ru: "пол" }, { en: "wall", ru: "стена" }
+    ]}
+  };
+
+  var achievementsList = [
+    { id: "first_game", icon: "🎯", title: "Первый шаг", desc: "Сыграй первую игру" },
+    { id: "first_perfect", icon: "⭐", title: "Идеально", desc: "10 из 10 в игре" },
+    { id: "10_correct", icon: "💪", title: "Ученик", desc: "10 правильных" },
+    { id: "50_correct", icon: "🔥", title: "Знаток", desc: "50 правильных" },
+    { id: "100_correct", icon: "🧠", title: "Умник", desc: "100 правильных" },
+    { id: "5_games", icon: "🎮", title: "Игрок", desc: "Сыграй 5 игр" },
+    { id: "25_games", icon: "🏅", title: "Профи", desc: "Сыграй 25 игр" },
+    { id: "all_categories", icon: "🏆", title: "Всезнайка", desc: "Пройди все категории" }
+  ];
+
+  var QUESTIONS_PER_ROUND = 10;
+  var currentCategory = null;
+  var currentMode = 'en-ru';
+  var currentQuestions = [];
+  var currentIndex = 0;
+  var correctCount = 0;
+  var wrongCount = 0;
+  var answered = false;
+
+  var stats = { totalGames: 0, totalCorrect: 0, totalWrong: 0, bestScore: 0, playedCategories: [], unlockedAchievements: [] };
+
+  var statCorrect = document.getElementById('statCorrect');
+  var statWrong = document.getElementById('statWrong');
+  var statProgress = document.getElementById('statProgress');
+  var questionLabel = document.getElementById('questionLabel');
+  var wordDisplay = document.getElementById('wordDisplay');
+  var optionsContainer = document.getElementById('optionsContainer');
+  var progressFill = document.getElementById('progressFill');
+  var resultEmoji = document.getElementById('resultEmoji');
+  var resultTitle = document.getElementById('resultTitle');
+  var resultScore = document.getElementById('resultScore');
+  var modeCategoryTitle = document.getElementById('modeCategoryTitle');
+  var categoryGrid = document.getElementById('categoryGrid');
+  var achievementsGrid = document.getElementById('achievementsGrid');
+  var pronounceBtn = document.getElementById('pronounceBtn');
+
+  function loadStats() {
+    try { var saved = localStorage.getItem('englishTrainerStats'); if (saved) stats = JSON.parse(saved); } catch (e) {}
+  }
+
+  function saveStats() {
+    try { localStorage.setItem('englishTrainerStats', JSON.stringify(stats)); } catch (e) {}
+  }
+
+  function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+    document.getElementById(screenId).classList.add('active');
+  }
+
+  function renderCategories() {
+    categoryGrid.innerHTML = '';
+    Object.keys(categories).forEach(function(key) {
+      var cat = categories[key];
+      var btn = document.createElement('button');
+      btn.className = 'category-card';
+      btn.innerHTML = '<span class="category-icon">' + cat.icon + '</span>' +
+        '<div class="category-name">' + cat.name + '</div>' +
+        '<div class="category-count">' + cat.words.length + ' слов</div>';
+      btn.onclick = function() { selectCategory(key); };
+      categoryGrid.appendChild(btn);
+    });
+  }
+
+  function selectCategory(key) {
+    currentCategory = key;
+    var cat = categories[key];
+    modeCategoryTitle.textContent = cat.icon + ' ' + cat.name;
+    showScreen('screenMode');
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(function(b) { b.classList.remove('active'); });
+    if (mode === 'en-ru') document.getElementById('modeEnRu').classList.add('active');
+    else if (mode === 'ru-en') document.getElementById('modeRuEn').classList.add('active');
+    else document.getElementById('modeRandom').classList.add('active');
+  }
+
+  function shuffle(array) {
+    var arr = array.slice();
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
+    }
+    return arr;
+  }
+
+  function startQuiz() {
+    currentIndex = 0; correctCount = 0; wrongCount = 0; answered = false;
+    statCorrect.textContent = '0'; statWrong.textContent = '0'; statProgress.textContent = '0%';
+    var catWords = categories[currentCategory].words;
+    var shuffled = shuffle(catWords);
+    currentQuestions = shuffled.slice(0, Math.min(QUESTIONS_PER_ROUND, shuffled.length));
+    showScreen('screenQuiz');
+    showQuestion();
+  }
+
+  function showQuestion() {
+    answered = false;
+    var q = currentQuestions[currentIndex];
+    var isEnRu = currentMode === 'en-ru' || (currentMode === 'random' && Math.random() < 0.5);
+
+    var questionWord = isEnRu ? q.en : q.ru;
+    var correctAnswer = isEnRu ? q.ru : q.en;
+
+    questionLabel.textContent = 'Вопрос ' + (currentIndex + 1) + ' из ' + currentQuestions.length;
+    wordDisplay.textContent = questionWord;
+
+    if (isEnRu) {
+      pronounceBtn.style.display = 'block';
+      pronounceBtn.dataset.word = q.en;
+    } else {
+      pronounceBtn.style.display = 'none';
+    }
+
+    var wrongOptions = [];
+    var catWords = categories[currentCategory].words;
+    while (wrongOptions.length < 3) {
+      var rw = catWords[Math.floor(Math.random() * catWords.length)];
+      var wrongAnswer = isEnRu ? rw.ru : rw.en;
+      if (wrongAnswer !== correctAnswer && wrongOptions.indexOf(wrongAnswer) === -1) {
+        wrongOptions.push(wrongAnswer);
+      }
+    }
+
+    var allOptions = shuffle([correctAnswer].concat(wrongOptions));
+    optionsContainer.innerHTML = '';
+    allOptions.forEach(function(option) {
+      var btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.textContent = option;
+      btn.onclick = function() { checkAnswer(btn, option, correctAnswer); };
+      optionsContainer.appendChild(btn);
+    });
+
+    var progress = (currentIndex / currentQuestions.length) * 100;
+    progressFill.style.width = progress + '%';
+    statProgress.textContent = Math.round(progress) + '%';
+  }
+
+  function checkAnswer(btn, selected, correct) {
+    if (answered) return;
+    answered = true;
+
+    var allButtons = optionsContainer.querySelectorAll('.option-btn');
+    allButtons.forEach(function(b) { b.classList.add('disabled'); });
+
+    if (selected === correct) {
+      btn.classList.add('correct');
+      correctCount++;
+      statCorrect.textContent = correctCount;
+    } else {
+      btn.classList.add('wrong');
+      wrongCount++;
+      statWrong.textContent = wrongCount;
+      allButtons.forEach(function(b) {
+        if (b.textContent === correct) b.classList.add('correct');
+      });
+    }
+
+    setTimeout(function() {
+      currentIndex++;
+      if (currentIndex < currentQuestions.length) {
+        showQuestion();
+      } else {
+        finishQuiz();
+      }
+    }, 1200);
+  }
+
+  function finishQuiz() {
+    progressFill.style.width = '100%';
+    statProgress.textContent = '100%';
+
+    stats.totalGames++;
+    stats.totalCorrect += correctCount;
+    stats.totalWrong += wrongCount;
+    if (correctCount > stats.bestScore) stats.bestScore = correctCount;
+    if (stats.playedCategories.indexOf(currentCategory) === -1) {
+      stats.playedCategories.push(currentCategory);
+    }
+    saveStats();
+    checkAchievements();
+
+    showScreen('screenResult');
+
+    var percent = Math.round((correctCount / currentQuestions.length) * 100);
+
+    if (percent === 100) { resultEmoji.textContent = '🏆'; resultTitle.textContent = 'Идеально!'; launchConfetti(); }
+    else if (percent >= 80) { resultEmoji.textContent = '🎉'; resultTitle.textContent = 'Отлично!'; launchConfetti(); }
+    else if (percent >= 60) { resultEmoji.textContent = '👍'; resultTitle.textContent = 'Хорошо!'; }
+    else if (percent >= 40) { resultEmoji.textContent = '💪'; resultTitle.textContent = 'Неплохо!'; }
+    else { resultEmoji.textContent = '📚'; resultTitle.textContent = 'Попробуй ещё!'; }
+
+    resultScore.innerHTML = 'Правильно: <span>' + correctCount + '</span> из <span>' + currentQuestions.length + '</span>';
+  }
+
+  function pronounceCurrentWord() {
+    var word = pronounceBtn.dataset.word;
+    if (!word) return;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      var utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert('Ваш браузер не поддерживает озвучку');
+    }
+  }
+
+  function renderStats() {
+    document.getElementById('statsTotalGames').textContent = stats.totalGames;
+    document.getElementById('statsTotalCorrect').textContent = stats.totalCorrect;
+    var total = stats.totalCorrect + stats.totalWrong;
+    var accuracy = total > 0 ? Math.round((stats.totalCorrect / total) * 100) : 0;
+    document.getElementById('statsAccuracy').textContent = accuracy + '%';
+    document.getElementById('statsBestScore').textContent = stats.bestScore;
+  }
+
+  function resetStats() {
+    if (confirm('Сбросить всю статистику?')) {
+      stats = { totalGames: 0, totalCorrect: 0, totalWrong: 0, bestScore: 0, playedCategories: [], unlockedAchievements: [] };
+      saveStats();
+      renderStats();
+      checkAchievements();
+    }
+  }
+
+  function checkAchievements() {
+    var unlocked = [];
+
+    if (stats.totalGames >= 1) unlocked.push('first_game');
+    if (stats.bestScore >= 10) unlocked.push('first_perfect');
+    if (stats.totalCorrect >= 10) unlocked.push('10_correct');
+    if (stats.totalCorrect >= 50) unlocked.push('50_correct');
+    if (stats.totalCorrect >= 100) unlocked.push('100_correct');
+    if (stats.totalGames >= 5) unlocked.push('5_games');
+    if (stats.totalGames >= 25) unlocked.push('25_games');
+    if (stats.playedCategories.length >= Object.keys(categories).length) unlocked.push('all_categories');
+
+    var newUnlocked = [];
+    unlocked.forEach(function(id) {
+      if (stats.unlockedAchievements.indexOf(id) === -1) {
+        stats.unlockedAchievements.push(id);
+        newUnlocked.push(id);
+      }
+    });
+
+    if (newUnlocked.length > 0) {
+      saveStats();
+      newUnlocked.forEach(function(id) {
+        var ach = achievementsList.filter(function(a) { return a.id === id; })[0];
+        if (ach) {
+          setTimeout(function() { showAchievementNotification(ach); }, 500);
+        }
+      });
+    }
+
+    renderAchievements();
+  }
+
+  function renderAchievements() {
+    achievementsGrid.innerHTML = '';
+    achievementsList.forEach(function(ach) {
+      var unlocked = stats.unlockedAchievements.indexOf(ach.id) !== -1;
+      var div = document.createElement('div');
+      div.className = 'achievement' + (unlocked ? ' unlocked' : '');
+      div.innerHTML = '<span class="achievement-icon">' + ach.icon + '</span>' +
+        '<div class="achievement-title">' + ach.title + '</div>' +
+        '<div class="achievement-desc">' + ach.desc + '</div>';
+      achievementsGrid.appendChild(div);
+    });
+  }
+
+  function showAchievementNotification(ach) {
+    var notif = document.createElement('div');
+    notif.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#667eea,#f093fb);color:#fff;padding:18px 28px;border-radius:16px;box-shadow:0 10px 40px rgba(102,126,234,0.5);z-index:9999;font-weight:700;text-align:center;';
+    notif.innerHTML = '🏆 Новое достижение!<br><span style="font-size:1.2rem;">' + ach.icon + ' ' + ach.title + '</span>';
+    document.body.appendChild(notif);
+    setTimeout(function() { notif.style.opacity = '0'; notif.style.transition = 'opacity 0.5s'; }, 3000);
+    setTimeout(function() { notif.remove(); }, 3500);
+  }
+
+  function launchConfetti() {
+    if (typeof confetti === 'function') {
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
+  }
+
+  window.addEventListener('load', function() {
+    loadStats();
+    renderCategories();
+    renderAchievements();
+    renderStats();
+    showScreen('screenCategory');
+  });
+</script>
+</body>
+</html>

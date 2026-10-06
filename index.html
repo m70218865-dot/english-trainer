@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Английский тренажёр — учи слова играя</title>
+<meta name="description" content="Тренажёр английских слов: 8 категорий, озвучка, статистика, достижения. Бесплатно, без регистрации.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CH6H0CT03G"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-CH6H0CT03G');
+</script>
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fb, #e8ecff, #f5e8ff, #ffe8f5, #f5f7fb);
+    background-size: 400% 400%;
+    animation: gradientShift 20s ease infinite;
+    color: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    overflow-x: hidden;
+    position: relative;
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .bg-animation {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(240, 147, 251, 0.12) 0%, transparent 45%);
+  }
+  .bg-blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none; animation: blobMove 20s ease-in-out infinite; }
+  .blob-1 { width: 500px; height: 500px; background: rgba(102, 126, 234, 0.25); top: -150px; left: -150px; }
+  .blob-2 { width: 400px; height: 400px; background: rgba(240, 147, 251, 0.2); bottom: -100px; right: -100px; animation-delay: -7s; }
+  .blob-3 { width: 350px; height: 350px; background: rgba(118, 75, 162, 0.15); top: 50%; left: 60%; animation-delay: -14s; }
+  @keyframes blobMove {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(50px, -30px) scale(1.1); }
+    66% { transform: translate(-30px, 40px) scale(0.95); }
+  }
+  .content-wrapper { position: relative; z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
+  h1 {
+    font-size: 2.4rem; font-weight: 700; letter-spacing: 1px; text-align: center; margin-bottom: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .subtitle { color: #6a6a8a; font-size: 0.95rem; letter-spacing: 1px; margin-bottom: 25px; text-align: center; }
+
+  .stats-bar {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 10;
+  }
+  .stat-box {
+    flex: 1;
+    background: #fff;
+    border: 1.5px solid #e8ebf5;
+    border-radius: 14px;
+    padding: 12px 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .stat-box:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15); }
+  .stat-label {
+    font-size: 0.7rem;
+    color: #8a8ab0;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #667eea;
+  }
+  .stat-value.green { color: #4caf50; }
+  .stat-value.red { color: #f44336; }
+
+  .card {
+    width: 100%; max-width: 600px; background: #fff; border: 1px solid rgba(102, 126, 234, 0.12);
+    border-radius: 24px; padding: 35px 30px;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
+    position: relative; overflow: hidden; transition: box-shadow 0.3s ease;
+  }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2, #f093fb); }
+
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .menu-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: #1a1a2e;
+  }
+  .menu-subtitle {
+    font-size: 0.9rem;
+    color: #8a8ab0;
+    text-align: center;
+    margin-bottom: 25px;
+  }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .category-card {
+    padding: 20px 18px;
+    background: #f8f9fd;
+    border: 1.5px solid #e8ebf5;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    font-family: inherit;
+  }
+  .category-card:hover {
+    background: #fff;
+    border-color: #667eea;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+  }
+  .category-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .category-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+  .category-count {
+    font-size: 0.75rem;
+    color: #8a8ab0;
+  }
+
+  .mode-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 14px 10px;
+    background: #f8f9fd;
+    border: 1.5px solid #e8ebf5;
+    border-radius: 12px;
+    color: #1a1a2e;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .mode-btn.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  }
+  .mode-btn:hover:not(.active) { background: #fff; border-color: #667eea; }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e8ebf5;
+    border-radius: 4px;
+    margin-bottom: 25px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #f093fb);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .question-label {
+    font-size: 0.85rem;
+    color: #8a8ab0;
+    text-align: center;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .word-display {
+    font-size: 3rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: wordAppear 0.5s ease;
+  }
+  @keyframes wordAppear {
+    0% { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .pronounce-btn {
+    display: block;
+    margin: 0 auto 25px;
+    padding: 12px 24px;
+    background: #fff;
+    border: 1.5px solid #667eea;
+    border-radius: 50px;
+    color: #667eea;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .pronounce-btn:hover {
+    background: #667eea;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .option-btn {
+    padding: 16px 20px;
+    background: #f8f9fd;
+    border: 1.5px solid #e8ebf5;
+    border-radius: 12px;
+    color: #1a1a2e;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+  .option-btn:hover:not(.disabled) {
+    background: #fff;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+  }
+  .option-btn.correct {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
+    animation: correctPulse 0.5s ease;
+  }
+  .option-btn.wrong {
+    background: #ffebee;
+    border-color: #f44336;
+    color: #c62828;
+    animation: wrongShake 0.5s ease;
+  }
+  .option-btn.disabled { cursor: not-allowed; }
+  @keyframes correctPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes wrongShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  .result-screen { text-align: center; }
+  .result-emoji { font-size: 4rem; margin-bottom: 15px; animation: emojiBounce 1s ease infinite; }
+  @keyframes emojiBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+  .result-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 10px; color: #1a1a2e; }
+  .result-score { font-size: 1.2rem; color: #6a6a8a; margin-bottom: 25px; }
+  .result-score span { color: #667eea; font-weight: 700; font-size: 1.5rem; }
+
+  .btn {
+    width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    border: none; border-radius: 14px; color: #fff; font-family: inherit; font-size: 1.05rem;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+    transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.35);
+    position: relative; overflow: hidden; margin-bottom: 12px;
+  }
+  .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5); }
+  .btn.secondary {
+    background: #f8f9fd;
+    color: #1a1a2e;
+    box-shadow: none;
+    border: 1.5px solid #e8ebf5;
+  }
+  .btn.secondary:hover { background: #fff; border-color: #667eea; color: #667eea; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15); }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: #f8f9fd;
+    border: 1.5px solid #e8ebf5;
+    border-radius: 50px;
+    color: #1a1a2e;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+  }
+  .back-btn:hover { background: #fff; border-color: #667eea; color: #667eea; }
+
+  /* ===== СТАТИСТИКА ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stats-item {
+    background: #f8f9fd;
+    border: 1.5px solid #e8ebf5;
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+  }
+  .stats-item-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 5px;
+  }
+  .stats-item-label {
+    font-size: 0.75rem;
+    color: #8a8ab0;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  /* ===== ДОСТИЖЕНИЯ ===== */
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .achievement {
+    background: #f8f9fd;
+    border: 1.5px solid #e8ebf5;
+    border-radius: 14px;
+    padding: 18px 14px;
+    text-align: center;
+    transition: all 0.3s ease;
+    opacity: 0.4;
+  }
+  .achievement.unlocked {
+    opacity: 1;
+    background: linear-gradient(135deg, #fff5e1, #ffe8f5);
+    border-color: #f093fb;
+    box-shadow: 0 8px 20px rgba(240, 147, 251, 0.2);
+  }
+  .achievement-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .achievement-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+  .achievement-desc {
+    font-size: 0.7rem;
+    color: #8a8ab0;
+    line-height: 1.3;
+  }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 1.8rem; }
+    .card { padding: 25px 20px; }
+    .word-display { font-size: 2.2rem; }
+    .stats-bar { flex-wrap: wrap; }
+    .stat-box { min-width: calc(50% - 8px); }
+    .category-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head><body>
+
+  <div class="bg-animation"></div>
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <div class="content-wrapper">
+
+    <h1>📚 Английский тренажёр</h1>
+    <p class="subtitle">Учи слова играя — 8 категорий, озвучка, достижения</p>
+
+    <div class="stats-bar">
+      <div class="stat-box">
+        <div class="stat-label">Правильно</div>
+        <div class="stat-value green" id="statCorrect">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Неправильно</div>
+        <div class="stat-value red" id="statWrong">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Прогресс</div>
+        <div class="stat-value" id="statProgress">0%</div>
+      </div>
+    </div>
+
+    <div class="card">
+
+      <!-- ЭКРАН 1: ВЫБОР КАТЕГОРИИ -->
+      <div class="screen active" id="screenCategory">
+        <div class="menu-title">📖 Выбери категорию</div>
+        <div class="menu-subtitle">Учи слова по темам</div>
+
+        <div class="category-grid" id="categoryGrid"></div>
+
+        <button class="btn secondary" onclick="showScreen('screenStats')">
+          📊 Моя статистика
+        </button>
+        <button class="btn secondary" onclick="showScreen('screenAchievements')">
+          🏆 Достижения
+        </button>
+      </div>
+
+      <!-- ЭКРАН 2: ВЫБОР РЕЖИМА -->
+      <div class="screen" id="screenMode">
+        <button class="back-btn" onclick="showScreen('screenCategory')">← Назад</button>
+        <div class="menu-title" id="modeCategoryTitle">📖 Категория</div>
+        <div class="menu-subtitle">Выбери режим тренировки</div>
+
+        <div class="mode-buttons">
+          <button class="mode-btn active" id="modeEnRu" onclick="setMode('en-ru')">
+            🇬🇧 → 🇷🇺
+          </button>
+          <button class="mode-btn" id="modeRuEn" onclick="setMode('ru-en')">
+            🇷🇺 → 🇬🇧
+          </button>
+          <button class="mode-btn" id="modeRandom" onclick="setMode('random')">
+            🎲 Случайно
+          </button>
+        </div>
+
+        <button class="btn" onclick="startQuiz()">▶ Начать тренировку</button>
+      </div>
+
+      <!-- ЭКРАН 3: ТРЕНАЖЁР -->
+      <div class="screen" id="screenQuiz">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="question-label" id="questionLabel">Вопрос 1 из 10</div>
+        <div class="word-display" id="wordDisplay">word</div>
+
+        <button class="pronounce-btn" id="pronounceBtn" onclick="pronounceCurrentWord()">
+          🔊 Прослушать
+        </button>
+
+        <div class="options" id="optionsContainer"></div>
+      </div>
+
+      <!-- ЭКРАН 4: РЕЗУЛЬТАТ -->
+      <div class="screen result-screen" id="screenResult">
+        <div class="result-emoji" id="resultEmoji">🎉</div>
+        <div class="result-title" id="resultTitle">Отлично!</div>
+        <div class="result-score" id="resultScore">
+          Правильно: <span>0</span> из <span>10</span>
+        </div>
+
+        <button class="btn" onclick="startQuiz()">🔄 Ещё раз</button>
+        <button class="btn secondary" onclick="showScreen('screenCategory')">📖 К категориям</button>
+      </div>
+
+      <!-- ЭКРАН 5: СТАТИСТИКА -->
+      <div class="screen" id="screenStats">
+        <button class="back-btn" onclick="showScreen('screenCategory')">← Назад</button>
+        <div class="menu-title">📊 Моя статистика</div>
+        <div class="menu-subtitle">Твой прогресс за всё время</div>
+
+        <div class="stats-grid">
+          <div class="stats-item">
+            <div class="stats-item-value" id="statsTotalGames">0</div>
+            <div class="stats-item-label">Игр сыграно</div>
+          </div>
+          <div class="stats-item">
+            <div class="stats-item-value" id="statsTotalCorrect">0</div>
+            <div class="stats-item-label">Правильных</div>
+          </div>
+          <div class="stats-item">
+            <div class="stats-item-value" id="statsAccuracy">0%</div>
+            <div class="stats-item-label">Точность</div>
+          </div>
+          <div class="stats-item">
+            <div class="stats-item-value" id="statsBestScore">0</div>
+            <div class="stats-item-label">Лучший результат</div>
+          </div>
+        </div>
+
+        <button class="btn secondary" onclick="resetStats()">🗑 Сбросить статистику</button>
+      </div>
+
+      <!-- ЭКРАН 6: ДОСТИЖЕНИЯ -->
+      <div class="screen" id="screenAchievements">
+        <button class="back-btn" onclick="showScreen('screenCategory')">← Назад</button>
+        <div class="menu-title">🏆 Достижения</div>
+        <div class="menu-subtitle">Твои награды за прогресс</div>
+
+        <div class="achievements-grid" id="achievementsGrid"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  window.addEventListener('load', function() {
+    loadStats();
+    renderCategories();
+    renderAchievements();
+    renderStats();
+    showScreen('screenCategory');
+  });
+</script>
+</body>
+</html>
